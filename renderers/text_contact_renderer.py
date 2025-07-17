@@ -20,7 +20,8 @@ class TextContactRenderer(ContactRenderer):
     @staticmethod
     def _build__string_tuple(values: Tuple[str], indentation: int) -> str:
         if len(values) == 0: return ""
-        return f"• {f"\n{" " * indentation}• ".join(values)}"
+        joined = "\n" + (" " * indentation) + "• "
+        return f"• {joined.join(values)}"
 
     def _with_padding(self, text: str) -> str:
         length = self.padding
