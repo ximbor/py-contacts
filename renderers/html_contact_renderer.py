@@ -1,7 +1,6 @@
 from typing import Tuple, List
 
-from IPython.core.display_functions import display
-from IPython.display import HTML
+from IPython.display import display, HTML
 
 from models.address import Address
 from models.contact import Contact
