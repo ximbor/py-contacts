@@ -2,19 +2,26 @@ import json
 import os
 import shutil
 from dataclasses import asdict
-
 from models.contact import Contact
 from typing import List
-
 from repositories.contacts_repository import ContactsRepository
 
 class InvalidJsonRepositoryError(Exception):
+    """
+    Invalìd JSON repository exception.
+    """
     pass
 
 class FailedLoadRepositoryError(Exception):
+    """
+    Filed load repository exception.
+    """
     pass
 
 class JsonContactsRepository(ContactsRepository):
+    """"
+        JSON ContactsRepository class.
+    """
 
     def __init__(self, filepath: str = "./data.json", auto_create = True):
         self.contacts = dict
@@ -23,14 +30,23 @@ class JsonContactsRepository(ContactsRepository):
         self.load_all()
 
     def _clear_cache(self) -> None:
+        """
+        Clear cache.
+        """
         self.contacts = dict
 
     def _write_all(self) -> None:
+        """
+        Write all contacts.
+        """
         contacts_dicts = [asdict(contact) for contact in self.contacts.values()]
         with open(self.filepath, 'w') as f:
             json.dump(contacts_dicts, f, indent = 4)
 
     def load_all(self) -> None:
+        """
+        Load all contacts.
+        """
 
         if self.auto_create and not os.path.exists(self.filepath):
             try:
@@ -52,22 +68,52 @@ class JsonContactsRepository(ContactsRepository):
             raise FailedLoadRepositoryError(f"Unable to read repository file: {e}")
 
     def upsert(self, contact: Contact) -> None:
+        """
+        Upsert a contact.
+
+        Args:
+              contact (Contact): Contact.
+        """
+
         key = (contact.first_name, contact.last_name)
         self.contacts.update({key: contact})
         self._write_all()
 
     def delete(self, first_name, last_name) -> None:
+        """
+        Delete a contact.
+        Args:
+             first_name (str): First name.
+             last_name (str): Last name.
+        """
+
         key = (first_name, last_name)
         self.contacts.pop(key)
         self._write_all()
 
     def get_all(self) -> List[Contact]:
+        """
+        Get all contacts.
+        """
         return self.contacts.values()
 
     def export(self, export_path: str = "./data-export.json") -> None:
+        """
+        Export all contacts.
+        """
         shutil.copyfile(self.filepath, export_path)
 
     def search(self, first_name = None, last_name = None) -> list[Contact]:
+        """
+        Search all contacts.
+
+        Args:
+             first_name (str): First name.
+             last_name (str): Last name.
+
+        Returns:
+            List[Contact]: List of contacts.
+        """
         filtered_contacts = [
             v for k, v in self.contacts.items() if (first_name is None or k[0] == first_name.lower()) and (last_name is None or k[1] == last_name.lower())
         ]

@@ -5,6 +5,9 @@ from models.contact import Contact
 from renderers.contact_renderer import ContactRenderer
 
 class TextContactRenderer(ContactRenderer):
+    """
+    Text Contact Renderer.
+    """
 
     def __init__(self):
         self.CONTACT_SEPARATOR = "=" * 50
@@ -34,11 +37,20 @@ class TextContactRenderer(ContactRenderer):
         return f"{self._with_padding(title)}{self.TITLE_SEPARATOR}{value}"
 
     def render(self, contact: Contact):
+        """
+        Renders a contact.
+
+        Args:
+            contact (Contact): Contact to render.
+
+        Returns:
+            str: rendered contact.
+        """
         return f"""
 {self._build_line("First name", contact.first_name)}
 {self._build_line("Last name", contact.last_name)}
 {self._build_line("E-mail", contact.email)}
-{self._build_line("phone numbers", TextContactRenderer._build__string_tuple(contact.phone_numbers, self.padding + len(self.TITLE_SEPARATOR)))}
+{self._build_line("Phone numbers", TextContactRenderer._build__string_tuple(contact.phone_numbers, self.padding + len(self.TITLE_SEPARATOR)))}
 {self._build_line("Address", TextContactRenderer._build_address(contact.address))}
 {self._build_line("Tags", TextContactRenderer._build__string_tuple(contact.tags, self.padding + len(self.TITLE_SEPARATOR)))}
 """

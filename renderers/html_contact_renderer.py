@@ -7,6 +7,9 @@ from models.contact import Contact
 from renderers.contact_renderer import ContactRenderer
 
 class HtmlContactRenderer(ContactRenderer):
+    """
+    HTML contact renderer.
+    """
 
     def __init__(self):
         self.CONTACT_SEPARATOR = "<hr/>"
@@ -39,6 +42,15 @@ class HtmlContactRenderer(ContactRenderer):
         return f"<div><strong>{title}{self.TITLE_SEPARATOR}</strong> {value}</div>"
 
     def render(self, contact: Contact):
+        """
+        Renders a contact in HTML format.
+
+        Args:
+            contact (Contact): Contact to render.
+
+        Returns:
+            HTML string representing the contact.
+        """
         html = f"""
             <div style="border: 1px solid #ccc; border-radius: 10px; padding: 16px; max-width: 500px; font-family: sans-serif;">              
               {self._build_line("👤 First name", contact.first_name)}
@@ -59,9 +71,23 @@ class HtmlContactRenderer(ContactRenderer):
         return html
 
     def display(self, contact: Contact):
+        """
+        Displays a contact in HTML format.
+        Args:
+             contact (Contact): Contact to render.
+        Returns:
+            None.
+        """
         display(HTML(self.render(contact)))
 
     def display_many(self, contacts: List[Contact]):
+        """
+        Displays a list of contacts in HTML format.
+        Args:
+             contacts (List[Contact]): Contacts to render.
+        Returns:
+            None.
+        """
         display(HTML(self.FOOTER))
         for contact in contacts:
             self.display(contact)

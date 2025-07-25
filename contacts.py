@@ -31,7 +31,7 @@ def input_list(prompt: str) -> Tuple[str]:
     print(f"\n--- {prompt} ---")
     items = []
     while True:
-        item = input("Add a value (empty to quit): ")
+        item = input("Add a value (empty to skip): ")
         if item == "":
             break
         items.append(item)
@@ -87,8 +87,8 @@ def handle_remove_contact(repository: ContactsRepository, renderer: ContactRende
     if first_name == "" and last_name == "":
         print("Please enter at least the first name or the last name.")
         handle_remove_contact(repository, renderer)
+        return None
     else:
-
         if first_name == "": first_name = None
         if last_name == "": last_name = None
 
@@ -96,13 +96,20 @@ def handle_remove_contact(repository: ContactsRepository, renderer: ContactRende
 
         if len(contacts) == 0:
             print("No contacts found: no deletion will be performed.")
+            return None
         else:
             for i, c in enumerate(contacts):
                 print(f"{i + 1}. {c.first_name} {c.last_name}")
-            selected_index = int(input("Please select a contact (insert the number): "))
-            selected_contact = contacts[selected_index - 1]
-            repository.delete(selected_contact.first_name, selected_contact.last_name)
+            selected_index = input("Please select a contact (insert the number) or press ENTER to cancel: ")
+
+            if selected_index == "":
+                return None
+
+            selected_contact = contacts[int(selected_index) - 1]
+            repository.delete(selected_contact.first_name.lower(), selected_contact.last_name.lower())
             print(f"The contact {selected_contact.first_name} {selected_contact.last_name} has been deleted.")
+            return None
+
 
 def handle_exit(repository: ContactsRepository, renderer: ContactRenderer) -> None:
     print("Exiting...\nGoodbye!")
