@@ -8,8 +8,7 @@ from renderers.contact_renderer import ContactRenderer
 from renderers.text_contact_renderer import TextContactRenderer
 from repositories.contacts_repository import ContactsRepository
 from repositories.json_contacts_repository import JsonContactsRepository
-from validators import is_valid_naming, is_valid_email, is_valid_zipcode
-
+from validators import is_valid_naming, is_valid_email, is_valid_zipcode, is_valid_phone_number
 
 def build_main_menu() -> Menu:
     main_menu_options = [
@@ -23,17 +22,18 @@ def build_main_menu() -> Menu:
 
 def input_address() -> Address:
     print("\n--- Address ---")
-    state = valid_input("State: ", False, is_valid_naming)
-    city = valid_input("Town/City: ", False, is_valid_naming)
-    street_location = valid_input("Street: ", False, is_valid_naming)
-    zipcode = valid_input("zipcode: ", False, is_valid_zipcode)
+    state = valid_input("State", False, is_valid_naming)
+    city = valid_input("Town/City", False, is_valid_naming)
+    street_location = valid_input("Street", False, is_valid_naming)
+    zipcode = valid_input("zipcode", False, is_valid_zipcode)
     return Address(street_location, city, state, zipcode)
 
-def input_list(prompt: str) -> Tuple[str]:
+def input_tuple(prompt: str, validator) -> Tuple[str]:
     print(f"\n--- {prompt} ---")
     items = []
     while True:
-        item = input("Add a value (empty to skip): ")
+        # item = input("Add a value (empty to skip): ")
+        item = valid_input("Add a value", False, validator)
         if item == "":
             break
         items.append(item)
@@ -46,35 +46,34 @@ def handle_export_contacts(repository: ContactsRepository, renderer: ContactRend
 
 def handle_add_contact(repository: ContactsRepository, renderer: ContactRenderer):
     print("\n=== Add a new contact ===")
-    first_name = valid_input("First name: ", True, is_valid_naming)
-    last_name = valid_input("Last name: ", True, is_valid_naming)
-    email = valid_input("E-mail: ", False, is_valid_email)
+    first_name = valid_input("First name", True, is_valid_naming)
+    last_name = valid_input("Last name", True, is_valid_naming)
+    email = valid_input("E-mail", False, is_valid_email)
     address = input_address()
-    phone_numbers = input_list("Telephone numbers: ")
-    tags = input_list("Tags: ")
+    phone_numbers = input_tuple("Telephone numbers: ", is_valid_phone_number)
+    tags = input_tuple("Tags: ", is_valid_naming)
     contact = Contact(first_name, last_name, email, address, phone_numbers, tags)
     repository.upsert(contact)
 
-
-from typing import Callable
-
-
 def valid_input(description: str, mandatory: bool, validator: Callable[[str], bool]):
+
     prompt = description
+
     if not mandatory:
         prompt += " (or ENTER to skip): "
+    else:
+        prompt += ": "
 
     value = input(prompt)
 
     if not mandatory and value.strip() == "":
-        return None
+        return ""
 
     if validator(value):
         return value
     else:
         print("⚠️ Input not valid. Try again.")
         return valid_input(description, mandatory, validator)
-
 
 def handle_search_contact(repository: ContactsRepository, renderer: ContactRenderer):
     print("\n=== Search Contacts ===")
@@ -130,9 +129,8 @@ def handle_remove_contact(repository: ContactsRepository, renderer: ContactRende
 
             selected_contact = contacts[int(selected_index) - 1]
             repository.delete(selected_contact.first_name.lower(), selected_contact.last_name.lower())
-            print(f"The contact {selected_contact.first_name} {selected_contact.last_name} has been deleted.")
+            print(f"'{selected_contact.first_name} {selected_contact.last_name}' has been deleted from contacts.")
             return None
-
 
 def handle_exit(repository: ContactsRepository, renderer: ContactRenderer) -> None:
     repository = None
