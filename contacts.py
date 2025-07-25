@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, Callable
 from input.menu import Menu
 from input.menu_item import MenuItem
 from input.textual_menu import TextualMenu
@@ -8,6 +8,8 @@ from renderers.contact_renderer import ContactRenderer
 from renderers.text_contact_renderer import TextContactRenderer
 from repositories.contacts_repository import ContactsRepository
 from repositories.json_contacts_repository import JsonContactsRepository
+from validators import is_valid_naming, is_valid_email, is_valid_zipcode
+
 
 def build_main_menu() -> Menu:
     main_menu_options = [
@@ -21,11 +23,11 @@ def build_main_menu() -> Menu:
 
 def input_address() -> Address:
     print("\n--- Address ---")
-    state = input("State: ")
-    city = input("Town/City: ")
-    street_location = input("Street: ") # Use street_location
-    zipcode = input("zipcode: ") # Use zipcode
-    return Address(street_location=street_location, city=city, state=state, zipcode=zipcode) # Pass arguments by keyword
+    state = valid_input("State: ", False, is_valid_naming)
+    city = valid_input("Town/City: ", False, is_valid_naming)
+    street_location = valid_input("Street: ", False, is_valid_naming)
+    zipcode = valid_input("zipcode: ", False, is_valid_zipcode)
+    return Address(street_location, city, state, zipcode)
 
 def input_list(prompt: str) -> Tuple[str]:
     print(f"\n--- {prompt} ---")
@@ -44,14 +46,35 @@ def handle_export_contacts(repository: ContactsRepository, renderer: ContactRend
 
 def handle_add_contact(repository: ContactsRepository, renderer: ContactRenderer):
     print("\n=== Add a new contact ===")
-    first_name = input("First name: ")
-    last_name = input("Last name: ")
-    email = input("E-mail: ")
+    first_name = valid_input("First name: ", True, is_valid_naming)
+    last_name = valid_input("Last name: ", True, is_valid_naming)
+    email = valid_input("E-mail: ", False, is_valid_email)
     address = input_address()
     phone_numbers = input_list("Telephone numbers: ")
     tags = input_list("Tags: ")
     contact = Contact(first_name, last_name, email, address, phone_numbers, tags)
     repository.upsert(contact)
+
+
+from typing import Callable
+
+
+def valid_input(description: str, mandatory: bool, validator: Callable[[str], bool]):
+    prompt = description
+    if not mandatory:
+        prompt += " (or ENTER to skip): "
+
+    value = input(prompt)
+
+    if not mandatory and value.strip() == "":
+        return None
+
+    if validator(value):
+        return value
+    else:
+        print("⚠️ Input not valid. Try again.")
+        return valid_input(description, mandatory, validator)
+
 
 def handle_search_contact(repository: ContactsRepository, renderer: ContactRenderer):
     print("\n=== Search Contacts ===")
@@ -112,6 +135,8 @@ def handle_remove_contact(repository: ContactsRepository, renderer: ContactRende
 
 
 def handle_exit(repository: ContactsRepository, renderer: ContactRenderer) -> None:
+    repository = None
+    renderer = None
     print("Exiting...\nGoodbye!")
 
 def main():
