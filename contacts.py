@@ -23,9 +23,9 @@ def input_address() -> Address:
     print("\n--- Address ---")
     state = input("State: ")
     city = input("Town/City: ")
-    street = input("Street: ")
-    postal_code = input("zipcode: ")
-    return Address(street, city, state, postal_code)
+    street_location = input("Street: ") # Use street_location
+    zipcode = input("zipcode: ") # Use zipcode
+    return Address(street_location=street_location, city=city, state=state, zipcode=zipcode) # Pass arguments by keyword
 
 def input_list(prompt: str) -> Tuple[str]:
     print(f"\n--- {prompt} ---")

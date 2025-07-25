@@ -2,7 +2,6 @@ import json
 import os
 import shutil
 from dataclasses import asdict
-from box import Box
 
 from models.contact import Contact
 from typing import List
@@ -45,7 +44,8 @@ class JsonContactsRepository(ContactsRepository):
         try:
             self._clear_cache()
             contacts_dict = json.load(open(self.filepath, "r", encoding="utf-8"))
-            self.contacts = { ( contact.first_name.lower(), contact.last_name.lower()): contact for contact in map(Box, contacts_dict) }
+            self.contacts = { (contact["first_name"].lower(), contact["last_name"].lower()): Contact.from_dict(contact) for contact in contacts_dict }
+
         except json.JSONDecodeError as e:
             raise FailedLoadRepositoryError(f"Invalid JSON format in repository file: {e}")
         except OSError as e:
