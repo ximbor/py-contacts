@@ -82,6 +82,27 @@ def handle_search_contact(repository: ContactsRepository, renderer: ContactRende
 
 def handle_remove_contact(repository: ContactsRepository, renderer: ContactRenderer):
     print("\n=== Remove Contacts ===")
+    first_name = input("First name of contact to delete (press ENTER to skip): ")
+    last_name = input("Last name of the contact to delete (press ENTER to skip): ")
+    if first_name == "" and last_name == "":
+        print("Please enter at least the first name or the last name.")
+        handle_remove_contact(repository, renderer)
+    else:
+
+        if first_name == "": first_name = None
+        if last_name == "": last_name = None
+
+        contacts = repository.search(first_name, last_name)
+
+        if len(contacts) == 0:
+            print("No contacts found: no deletion will be performed.")
+        else:
+            for i, c in enumerate(contacts):
+                print(f"{i + 1}. {c.first_name} {c.last_name}")
+            selected_index = int(input("Please select a contact (insert the number): "))
+            selected_contact = contacts[selected_index - 1]
+            repository.delete(selected_contact.first_name, selected_contact.last_name)
+            print(f"The contact {selected_contact.first_name} {selected_contact.last_name} has been deleted.")
 
 def handle_exit(repository: ContactsRepository, renderer: ContactRenderer) -> None:
     print("Exiting...\nGoodbye!")
