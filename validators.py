@@ -1,5 +1,12 @@
 import re
 
+def is_number(s: str) -> bool:
+    try:
+        float(s)
+        return True
+    except ValueError:
+        return False
+
 def is_valid_naming(name: str) -> bool:
     if name is None or len(name) < 2:
         return False

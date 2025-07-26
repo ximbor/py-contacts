@@ -1,3 +1,4 @@
+from enum import nonmember
 from typing import Tuple, Callable
 from input.menu import Menu
 from input.menu_item import MenuItem
@@ -8,7 +9,8 @@ from renderers.contact_renderer import ContactRenderer
 from renderers.text_contact_renderer import TextContactRenderer
 from repositories.contacts_repository import ContactsRepository
 from repositories.json_contacts_repository import JsonContactsRepository
-from validators import is_valid_naming, is_valid_email, is_valid_zipcode, is_valid_phone_number
+from validators import is_valid_naming, is_valid_email, is_valid_zipcode, is_valid_phone_number, is_number
+
 
 def build_main_menu() -> Menu:
     main_menu_options = [
@@ -121,10 +123,16 @@ def handle_remove_contact(repository: ContactsRepository, renderer: ContactRende
                 print(f"{i + 1}. {c.first_name} {c.last_name}")
             selected_index = input("> Please select a contact (insert the number) to confirm the deletion or press ENTER to cancel: ")
 
-            if selected_index == "":
+            if not is_number(selected_index):
+                print("⚠️ Invalid selection.")
                 return None
 
-            selected_contact = contacts[int(selected_index) - 1]
+            selected_index = int(selected_index)
+            if selected_index <= 0 or selected_index > len(contacts):
+                print("⚠️ Invalid selection.")
+                return None
+
+            selected_contact = contacts[selected_index - 1]
             repository.delete(selected_contact.first_name.lower(), selected_contact.last_name.lower())
             print(f"✅ '{selected_contact.first_name} {selected_contact.last_name}' has been deleted from contacts.")
             return None
