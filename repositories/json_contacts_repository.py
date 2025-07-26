@@ -4,6 +4,7 @@ import shutil
 from dataclasses import asdict
 from models.contact import Contact
 from typing import List
+from pathlib import Path
 from repositories.contacts_repository import ContactsRepository
 
 class InvalidJsonRepositoryError(Exception):
@@ -21,6 +22,18 @@ class FailedLoadRepositoryError(Exception):
 class JsonContactsRepository(ContactsRepository):
     """"
         JSON ContactsRepository class.
+    """
+    pass
+
+class InvalidExportRepositoryError(Exception):
+    """
+    Invalìd Export repository exception.
+    """
+    pass
+
+class JsonContactsRepository(ContactsRepository):
+    """"
+    JSON ContactsRepository class.
     """
 
     def __init__(self, filepath: str = "./data.json", auto_create = True):
@@ -70,7 +83,6 @@ class JsonContactsRepository(ContactsRepository):
     def upsert(self, contact: Contact) -> None:
         """
         Upsert a contact.
-
         Args:
               contact (Contact): Contact.
         """
@@ -101,7 +113,24 @@ class JsonContactsRepository(ContactsRepository):
         """
         Export all contacts.
         """
-        shutil.copyfile(self.filepath, export_path)
+        try:
+            export_file_path = Path(export_path).expanduser().resolve(strict=False)
+
+            if not export_file_path.parent.exists():
+                raise InvalidExportRepositoryError(f"The export path should be in an existing directory.")
+
+            if export_file_path.exists() and export_file_path.is_dir():
+                raise InvalidExportRepositoryError(f"The export path should be an actual file, not a directory.")
+
+            repo_file_path = Path(self.filepath).expanduser().resolve(strict=False)
+            if export_file_path == repo_file_path:
+                raise InvalidExportRepositoryError(f"The export path {export_file_path} must be different from the contacts' repository path {repo_file_path}.")
+
+            shutil.copyfile(self.filepath, export_path)
+            return None
+
+        except Exception as e:
+            raise InvalidExportRepositoryError(f"Could not export the contacts: {e}.")
 
     def search(self, first_name = None, last_name = None) -> list[Contact]:
         """

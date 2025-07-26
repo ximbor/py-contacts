@@ -20,4 +20,4 @@ class TextualMenu(Menu):
         """
 
         for item in self.items:
-           print(f"""{item.key}. {item.text}""")
+           print(f"""🔹 {item.key}. {item.text}""")

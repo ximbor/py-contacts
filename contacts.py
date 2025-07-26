@@ -21,39 +21,51 @@ def build_main_menu() -> Menu:
     return TextualMenu(main_menu_options)
 
 def input_address() -> Address:
-    print("\n--- Address ---")
-    state = valid_input("State", False, is_valid_naming)
-    city = valid_input("Town/City", False, is_valid_naming)
-    street_location = valid_input("Street", False, is_valid_naming)
-    zipcode = valid_input("zipcode", False, is_valid_zipcode)
+    print("▶ Address")
+    state = valid_input("  > State", False, is_valid_naming)
+    city = valid_input("  > Town/City", False, is_valid_naming)
+    street_location = valid_input("  > Street", False, is_valid_naming)
+    zipcode = valid_input("  > zipcode", False, is_valid_zipcode)
     return Address(street_location, city, state, zipcode)
 
 def input_tuple(prompt: str, validator) -> Tuple[str]:
-    print(f"\n--- {prompt} ---")
+    print(prompt)
     items = []
     while True:
-        # item = input("Add a value (empty to skip): ")
-        item = valid_input("Add a value", False, validator)
+        item = valid_input("  > Add a value", False, validator)
         if item == "":
             break
         items.append(item)
     return tuple(items)
 
+def print__menu_item_header(header: str):
+    print(f"\n=== {header} ===")
+
+def print__menu_header():
+    print("\n-----------------")
+    print("Select an option:")
+    print("-----------------")
+
 def handle_export_contacts(repository: ContactsRepository, renderer: ContactRenderer):
-    print("\n=== Export Contacts ===")
-    filepath = input("File path: ")
-    repository.export(filepath)
+    print__menu_item_header("📁 Export Contacts")
+    filepath = input("▶ File name (if empty 'export.json' will be used): ")
+    if filepath == "": filepath = "export.json"
+    try:
+        repository.export(filepath)
+    except Exception as e:
+        print(f"⚠️ Could not export the contacts: {e}.")
 
 def handle_add_contact(repository: ContactsRepository, renderer: ContactRenderer):
-    print("\n=== Add a new contact ===")
-    first_name = valid_input("First name", True, is_valid_naming)
-    last_name = valid_input("Last name", True, is_valid_naming)
-    email = valid_input("E-mail", False, is_valid_email)
+    print__menu_item_header("📚 Add a new contact")
+    first_name = valid_input("▶ First name", True, is_valid_naming)
+    last_name = valid_input("▶ Last name", True, is_valid_naming)
+    email = valid_input("▶ E-mail", False, is_valid_email)
     address = input_address()
-    phone_numbers = input_tuple("Telephone numbers: ", is_valid_phone_number)
-    tags = input_tuple("Tags: ", is_valid_naming)
+    phone_numbers = input_tuple("▶ Telephone numbers: ", is_valid_phone_number)
+    tags = input_tuple("▶ Tags: ", is_valid_naming)
     contact = Contact(first_name, last_name, email, address, phone_numbers, tags)
     repository.upsert(contact)
+    print(f"✅ '{contact.first_name} {contact.last_name}' has been added to the contacts.")
 
 def valid_input(description: str, mandatory: bool, validator: Callable[[str], bool]):
 
@@ -76,39 +88,24 @@ def valid_input(description: str, mandatory: bool, validator: Callable[[str], bo
         return valid_input(description, mandatory, validator)
 
 def handle_search_contact(repository: ContactsRepository, renderer: ContactRenderer):
-    print("\n=== Search Contacts ===")
-    first_name = input("First name (press ENTER to exclude it from the search): ")
-    last_name = input("Last name (press ENTER to exclude it from the search): ")
+    print__menu_item_header("🔎 Search Contacts")
+    first_name = input("▶ First name (press ENTER to exclude it from the search): ")
+    last_name = input("▶ Last name (press ENTER to exclude it from the search): ")
 
-    output_str = "\nSearching "
-    if first_name == "":
-        first_name = None
-    else:
-        output_str+= f"First name = '{first_name}' "
-    if last_name == "":
-        last_name = None
-    else:
-        output_str+= f"Last name = '{last_name}'"
-
-    if first_name is None and last_name is None:
-        output_str+= "all the contacts"
-
-    print(f"{output_str}...\n")
+    if first_name == "": first_name = None
+    if last_name == "": last_name = None
 
     contacts = repository.search(first_name, last_name)
 
-    if len(contacts) == 0:
-        print("No contacts found.")
-    else:
-        renderer.display_many(contacts)
+    if len(contacts) == 0: print("⚠️ No contacts found.")
+    else: renderer.display_many(contacts)
 
 def handle_remove_contact(repository: ContactsRepository, renderer: ContactRenderer):
-    print("\n=== Remove Contacts ===")
-    first_name = input("First name of contact to delete (press ENTER to skip): ")
-    last_name = input("Last name of the contact to delete (press ENTER to skip): ")
+    print__menu_item_header("🗑 Remove a contact")
+    first_name = input("▶ First name of contact to delete (press ENTER to skip): ")
+    last_name = input("▶ Last name of the contact to delete (press ENTER to skip): ")
     if first_name == "" and last_name == "":
-        print("Please enter at least the first name or the last name.")
-        handle_remove_contact(repository, renderer)
+        print("⚠️ Either first name or last name (or both) must be provided.")
         return None
     else:
         if first_name == "": first_name = None
@@ -117,34 +114,33 @@ def handle_remove_contact(repository: ContactsRepository, renderer: ContactRende
         contacts = repository.search(first_name, last_name)
 
         if len(contacts) == 0:
-            print("No contacts found: no deletion will be performed.")
+            print("⚠️ No contacts found: no deletion will be performed.")
             return None
         else:
             for i, c in enumerate(contacts):
                 print(f"{i + 1}. {c.first_name} {c.last_name}")
-            selected_index = input("Please select a contact (insert the number) or press ENTER to cancel: ")
+            selected_index = input("> Please select a contact (insert the number) to confirm the deletion or press ENTER to cancel: ")
 
             if selected_index == "":
                 return None
 
             selected_contact = contacts[int(selected_index) - 1]
             repository.delete(selected_contact.first_name.lower(), selected_contact.last_name.lower())
-            print(f"'{selected_contact.first_name} {selected_contact.last_name}' has been deleted from contacts.")
+            print(f"✅ '{selected_contact.first_name} {selected_contact.last_name}' has been deleted from contacts.")
             return None
 
 def handle_exit(repository: ContactsRepository, renderer: ContactRenderer) -> None:
     repository = None
     renderer = None
-    print("Exiting...\nGoodbye!")
+    print("Goodbye! 👻")
 
 def main():
     renderer = TextContactRenderer()
     repository = JsonContactsRepository()
-    print("Welcome to py-contacts!")
+    print("Welcome to py-contacts! 👻")
 
     while True:
-        print("\n-----------------")
-        print("Select an option:")
+        print__menu_header()
         main_menu = build_main_menu()
         main_menu.display()
         choose = input("> ")
@@ -160,8 +156,6 @@ def main():
         if selection is None:
             print("Invalid option. Please select a valid menu item.")
             continue
-
-        print(f"You selected: {selection.code}")
 
         if selection.action:
             selection.action(repository, renderer)
