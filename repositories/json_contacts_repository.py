@@ -87,7 +87,7 @@ class JsonContactsRepository(ContactsRepository):
               contact (Contact): Contact.
         """
 
-        key = (contact.first_name, contact.last_name)
+        key = (contact.first_name.lower(), contact.last_name.lower())
         self.contacts.update({key: contact})
         self._write_all()
 
@@ -143,6 +143,9 @@ class JsonContactsRepository(ContactsRepository):
         Returns:
             List[Contact]: List of contacts.
         """
+
+        print(first_name, last_name)
+
         filtered_contacts = [
             v for k, v in self.contacts.items() if (first_name is None or k[0] == first_name.lower()) and (last_name is None or k[1] == last_name.lower())
         ]
