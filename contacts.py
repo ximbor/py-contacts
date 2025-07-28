@@ -156,7 +156,7 @@ def main():
         try:
             choose_int = int(choose)
         except ValueError:
-            print("Invalid input. Please enter a number.")
+            print("⚠️ Invalid input. Please enter a number.")
             continue
 
         selection = next((item for item in main_menu.items if item.key == choose_int), None)
